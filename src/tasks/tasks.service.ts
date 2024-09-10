@@ -1,33 +1,72 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Task, TaskStatus } from './task.model';
-import { v4 as uuid } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskFactory } from './task-factory';
+import { TaskStatus } from './task-status.enum';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
-
+ 
 @Injectable()
-/**
- * Service to manage tasks in the application.
- */
 export class TasksService {
-    /**
-    * Array of tasks.
-    * @private
-    */
-    private tasks: Task[] = [];
+  constructor(
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
+  ) {}
+  
+  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+    const task = TaskFactory.createTask(createTaskDto);
 
-    /**
-    * Get all tasks.
-    * @returns {Task[]} An array of tasks.
-    */
+    await this.taskRepository.save(task);
+    return task;
+  }
+
+  async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
+    const { status, search } = filterDto;
+    const query = this.taskRepository.createQueryBuilder('task');
+
+    if (status) {
+        query.andWhere('task.status = :status', { status });
+    }
+
+    if (search) {
+        query.andWhere(
+            'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
+            { search: `%${search}%`},
+        );
+    }
+
+    const tasks = await query.getMany();
+    return tasks;
+  }
+
+  async getTaskById(id): Promise<Task> {
+    return await this.taskRepository.findOneBy({ id: id });
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    const result = await this.taskRepository.delete(id);
+
+    if(result.affected === 0) {
+        throw new NotFoundException(`Task with ID "${id}" not found`);
+        }
+    }
+
+    async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
+        const task = await this.getTaskById(id);
+
+        task.status = status;
+        await this.taskRepository.save(task);
+
+        return task;
+    }
+}
+/* 
     getAllTasks(): Task[] {
         return this.tasks;
     }
 
-    /**
-    * Get tasks based on filters such as status and search term.
-    * @param {GetTasksFilterDto} filterDto The filter data transfer object.
-    * @returns {Task[]} Filtered tasks.
-    */
+
     getTasksWithFilters(filterDto: GetTasksFilterDto): Task[] {
         const { status, search } = filterDto;
 
@@ -49,34 +88,11 @@ export class TasksService {
         return tasks;
     }
 
-    /**
-    * Get a task by its ID.
-    * @param {string} id The ID of the task to retrieve.
-    * @returns {Task} The task with the given ID.
-    */
-    getTaskById(id: string): Task{
-        const found = this.tasks.find((task) => task.id === id)
-
-        if(!found) {
-            throw new NotFoundException(`Task with ID " ${id} " not found`);
-        }
-        return found;
-    }
-
-    /**
-    * Delete a task by its ID.
-    * @param {string} id The ID of the task to delete.
-    */
     deleteTask(id: string): void {
         const found = this.getTaskById(id);
         this.tasks = this.tasks.filter((task) => task.id !== found.id);
     }
 
-    /**
-    * Create a new task.
-    * @param {CreateTaskDto} createTaskDto The data transfer object containing title and description.
-    * @returns {Task} The newly created task.
-    */
     createTask(createTaskDto: CreateTaskDto): Task {
         const { title, description} = createTaskDto;
         const task: Task = {
@@ -90,15 +106,9 @@ export class TasksService {
         return task;
     }
 
-    /**
-    * Update the status of a task.
-    * @param {string} id The ID of the task to update.
-    * @param {TaskStatus} status The new status of the task.
-    * @returns {Task} The updated task.
-    */
     updateTaskStatus(id: string, status: TaskStatus): Task {
         const task =  this.getTaskById(id);
         task.status = status;
         return task;
-    }
-}
+    } */
+

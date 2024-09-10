@@ -117,7 +117,7 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:3000/tasks/593da2c6-7c66-4854-ba2d-794b3ec09331/status/",
+					"raw": "http://localhost:3000/tasks/9893c472-95e8-4d8a-8de3-9ff9c3df0f9b/status",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -125,9 +125,8 @@
 					"port": "3000",
 					"path": [
 						"tasks",
-						"593da2c6-7c66-4854-ba2d-794b3ec09331",
-						"status",
-						""
+						"9893c472-95e8-4d8a-8de3-9ff9c3df0f9b",
+						"status"
 					]
 				}
 			},
