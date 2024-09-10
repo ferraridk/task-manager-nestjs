@@ -11,10 +11,6 @@ import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 * Provides CRUD operations for managing tasks.
 */
 export class TasksController {
-    /**
-    * Constructor for TasksController.
-    * @param {TasksService} tasksService - The service that manages task-related operations.
-    */
     constructor(private tasksService: TasksService) {}
 
     @Post()
@@ -46,24 +42,4 @@ export class TasksController {
     async deleteTask(@Param('id') id: string): Promise<void> {
         this.tasksService.deleteTask(id);
     }
-
-/* 
-    @Get()
-    getTasks(@Query() filterDto: GetTasksFilterDto): Task[] {
-        if(Object.keys(filterDto).length){
-            return this.tasksService.getTasksWithFilters(filterDto);
-        } else {
-        return this.tasksService.getAllTasks();
-        }
-    }
-
-    @Patch('/:id/status')
-    updateTaskStatus(
-        @Param('id') id: string,
-        @Body() updateTaskStatusDto: UpdateTaskStatusDto,
-    ): Task {
-        const { status } = updateTaskStatusDto;
-        return this.tasksService.updateTaskStatus(id, status);
-    }
-     */
 }
